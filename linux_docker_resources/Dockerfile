@@ -10,19 +10,20 @@ ARG COMPILE_WITH_CLANG=false
 # See: http://askubuntu.com/questions/506158/unable-to-initialize-frontend-dialog-when-using-ssh
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN apt-get update && apt-get install --no-install-recommends -y locales
-RUN locale-gen en_US.UTF-8
-ENV LANG en_US.UTF-8
-
-# net-tools is for ifconfig
 # Get curl for fetching the repo keys.
 # Get https transport for APT.
 RUN apt-get update && apt-get install --no-install-recommends -y \
-  lsb-release net-tools sudo \
+  apt-transport-https \
   ca-certificates \
   curl \
   gnupg2 \
-  apt-transport-https
+  locales \
+  lsb-release \
+  net-tools \
+  sudo
+
+RUN locale-gen en_US.UTF-8
+ENV LANG en_US.UTF-8
 
 # Add the ROS repositories to the apt sources list.
 RUN if test ${UBUNTU_DISTRO} != jammy; then echo "deb http://repositories.ros.org/ubuntu/testing/ `lsb_release -cs` main" > /etc/apt/sources.list.d/ros-latest.list; fi
@@ -34,27 +35,60 @@ RUN echo "deb http://packages.osrfoundation.org/gazebo/ubuntu `lsb_release -cs` 
 RUN curl --silent http://packages.osrfoundation.org/gazebo.key | apt-key add -
 
 # Install some development tools.
-RUN if test ${UBUNTU_DISTRO} = bionic; then LARK_PKG=python3-lark-parser; else LARK_PKG=python3-lark; fi && apt-get update && apt-get install --no-install-recommends -y $LARK_PKG python3-opencv
+RUN if test ${UBUNTU_DISTRO} = bionic; then LARK_PKG=python3-lark-parser; else LARK_PKG=python3-lark; fi && apt-get update && apt-get install --no-install-recommends -y $LARK_PKG
 
 # Install build and test dependencies of ROS 2 packages.
 RUN apt-get update && apt-get install --no-install-recommends -y \
+  acl \
+  bison \
   build-essential \
   ccache \
   clang-format \
   cmake \
   cppcheck \
   git \
+  lcov \
+  libacl1-dev \
+  libasio-dev \
+  libassimp-dev \
   libbenchmark-dev \
   libbullet-dev \
+  libconsole-bridge-dev \
+  libcurl4-openssl-dev \
+  libcunit1-dev \
+  libeigen3-dev \
+  libfreetype6-dev \
+  libgl1-mesa-dri \
+  libglapi-mesa \
+  libgles2-mesa-dev \
+  libglu1-mesa-dev \
   liblog4cxx-dev \
+  libncurses5-dev \
+  libopencv-dev \
+  libosmesa6 \
+  libqt5core5a \
+  libqt5gui5 \
+  libqt5opengl5 \
+  libqt5widgets5 \
+  libtinyxml2-dev \
+  libssl-dev \
+  libtinyxml-dev \
+  libxaw7-dev \
   libxml2-dev \
   libxml2-utils \
+  libxrandr-dev \
   libxslt-dev \
+  matchbox-window-manager \
+  maven \
+  mesa-utils \
+  net-tools \
   pkg-config \
   pydocstyle \
+  pyqt5-dev \
   python3-pyflakes \
   python3-coverage \
   python3-cryptography \
+  python3-dev \
   python3-empy \
   python3-flake8 \
   python3-lxml \
@@ -63,20 +97,30 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   python3-netifaces \
   python3-nose \
   python3-numpy \
+  python3-opencv \
   python3-pep8 \
+  python3-pexpect \
   python3-pip \
+  python3-pydot \
+  python3-pygraphviz \
   python3-pyparsing \
+  python3-pyqt5 \
+  python3-pyqt5.qtsvg \
   python3-pytest-mock \
   python3-setuptools \
+  python3-sip-dev \
   python3-vcstool \
+  python3-virtualenv \
   python3-yaml \
-  uncrustify
+  qtbase5-dev \
+  uncrustify \
+  valgrind \
+  xvfb
 
 # Install clang if build arg is true
 RUN if test ${COMPILE_WITH_CLANG} = true; then apt-get update && apt-get install --no-install-recommends -y clang libc++-dev libc++abi-dev; fi
 
 # Install coverage build dependencies.
-RUN apt-get update && apt-get install --no-install-recommends -y lcov
 RUN pip3 install -U lcov_cobertura_fix
 
 # Install importlib-resources for Bionic only.
@@ -87,9 +131,6 @@ RUN if test \( ${PLATFORM} = x86 -a ${INSTALL_CONNEXT_DEBS} = true \); then apt-
 
 # Install the RTI dependencies.
 RUN if test ${PLATFORM} = x86; then apt-get update && apt-get install --no-install-recommends -y default-jre-headless; fi
-
-# Install dependencies for RTI web binaries install script.
-RUN apt-get update && apt-get install --no-install-recommends -y python3-pexpect
 
 # Get and install the RTI web binaries.
 RUN cd /tmp && curl --silent https://s3.amazonaws.com/RTI/Bundles/5.3.1/Evaluation/rti_connext_dds_secure-5.3.1-eval-x64Linux3gcc5.4.0.tar.gz | tar -xz
@@ -103,33 +144,6 @@ ADD rticonnextdds-license/rti_license.dat /tmp/rti_license.dat
 # ADD rticonnextdds-src/librticonnextdds52_5.2.3-1_amd64.deb /tmp/librticonnextdds52_5.2.3-1_amd64.deb
 # ADD rticonnextdds-src/librticonnextdds52-dev_5.2.3-1_amd64.deb /tmp/librticonnextdds52-dev_5.2.3-1_amd64.deb
 # ADD rticonnextdds-src/rticonnextdds-tools_5.2.3-1_amd64.deb /tmp/rticonnextdds-tools_5.2.3-1_amd64.deb
-
-# Install the eProsima dependencies.
-RUN apt-get update && apt-get install --no-install-recommends -y libasio-dev libssl-dev libtinyxml2-dev valgrind
-
-# Install the CycloneDDS dependencies.
-RUN apt-get update && apt-get install --no-install-recommends -y bison libcunit1-dev maven openjdk-11-jdk
-
-# Install OpenCV.
-RUN apt-get update && apt-get install --no-install-recommends -y libopencv-dev
-
-# Install console_bridge for class_loader et al.
-RUN apt-get update && apt-get install --no-install-recommends -y libconsole-bridge-dev
-
-# Install build dependencies for class_loader.
-RUN apt-get update && apt-get install --no-install-recommends -y libpoco-dev
-
-# Install build dependencies for rviz et al.
-RUN apt-get update && apt-get install --no-install-recommends -y libassimp-dev libcurl4-openssl-dev libfreetype6-dev libgles2-mesa-dev libglu1-mesa-dev libqt5core5a libqt5gui5 libqt5opengl5 libqt5widgets5 libxaw7-dev libxrandr-dev qtbase5-dev
-
-# Install build dependencies for rqt et al.
-RUN apt-get update && apt-get install --no-install-recommends -y pyqt5-dev python3-pyqt5 python3-pyqt5.qtsvg python3-sip-dev python3-pydot python3-pygraphviz
-
-# Install dependencies for robot_model and robot_state_publisher
-RUN apt-get update && apt-get install --no-install-recommends -y libtinyxml-dev libeigen3-dev
-
-# Install Python3 development files.
-RUN apt-get update && apt-get install --no-install-recommends -y python3-dev
 
 # automatic invalidation once every day.
 RUN echo "@today_str"
@@ -146,21 +160,6 @@ RUN if test ${BRIDGE} = true; then apt-get update && apt-get install --no-instal
     ros-${ROS1_DISTRO}-roscpp-tutorials \
     ros-${ROS1_DISTRO}-rospy-tutorials \
     ros-${ROS1_DISTRO}-tf2-msgs; fi
-
-# Install dependencies for RViz visual tests
-RUN apt-get update && apt-get install --no-install-recommends -y \
-    libgl1-mesa-dri \
-    libglapi-mesa \
-    libosmesa6 \
-    mesa-utils \
-    xvfb \
-    matchbox-window-manager
-
-# Install dependencies for iceoryx
-RUN apt-get update && apt-get install -y \
-    acl \
-    libacl1-dev \
-    libncurses5-dev
 
 # After all packages are installed, update ccache symlinks (see ros2/ci#326).
 # This command is supposed to be invoked whenever a new compiler is installed
