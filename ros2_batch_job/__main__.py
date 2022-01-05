@@ -506,9 +506,6 @@ def run(args, build_function, blacklisted_package_names=None):
     # Now inside of the workspace...
     with change_directory(args.workspace):
         print('# BEGIN SUBSECTION: install Python packages')
-        # Update setuptools
-        job.run(['"%s"' % job.python, '-m', 'pip', 'install', '-U', 'pip', 'setuptools'],
-                shell=True)
         # Print setuptools version
         job.run(['"%s"' % job.python, '-c', '"import setuptools; print(setuptools.__version__)"'],
                 shell=True)

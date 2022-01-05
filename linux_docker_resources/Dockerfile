@@ -34,12 +34,14 @@ RUN echo "deb http://packages.osrfoundation.org/gazebo/ubuntu `lsb_release -cs` 
 RUN curl --silent http://packages.osrfoundation.org/gazebo.key | apt-key add -
 
 # Install some development tools.
-RUN apt-get update && apt-get install --no-install-recommends -y build-essential ccache cmake pkg-config python3-empy python3-setuptools python3-vcstool
 RUN if test ${UBUNTU_DISTRO} = bionic; then LARK_PKG=python3-lark-parser; else LARK_PKG=python3-lark; fi && apt-get update && apt-get install --no-install-recommends -y $LARK_PKG python3-opencv
 
 # Install build and test dependencies of ROS 2 packages.
 RUN apt-get update && apt-get install --no-install-recommends -y \
+  build-essential \
+  ccache \
   clang-format \
+  cmake \
   cppcheck \
   git \
   libbenchmark-dev \
@@ -48,10 +50,12 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   libxml2-dev \
   libxml2-utils \
   libxslt-dev \
+  pkg-config \
   pydocstyle \
   python3-pyflakes \
   python3-coverage \
   python3-cryptography \
+  python3-empy \
   python3-flake8 \
   python3-lxml \
   python3-mock \
@@ -60,14 +64,13 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   python3-nose \
   python3-numpy \
   python3-pep8 \
+  python3-pip \
   python3-pyparsing \
   python3-pytest-mock \
+  python3-setuptools \
+  python3-vcstool \
   python3-yaml \
   uncrustify
-
-# Install and self update pip/setuptools to the latest version.
-RUN apt-get update && apt-get install --no-install-recommends -y python3-pip
-RUN pip3 install -U setuptools pip virtualenv==16.7.9
 
 # Install clang if build arg is true
 RUN if test ${COMPILE_WITH_CLANG} = true; then apt-get update && apt-get install --no-install-recommends -y clang libc++-dev libc++abi-dev; fi
