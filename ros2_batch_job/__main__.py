@@ -128,12 +128,12 @@ def main(sysargv=None):
         blacklisted_package_names += [
             'actionlib_msgs',
             'common_interfaces',
-            'cv_bridge',
-            'opencv_tests',
+            # 'cv_bridge',
+            # 'opencv_tests',
             'ros1_bridge',
             'shape_msgs',
             'stereo_msgs',
-            'vision_opencv',
+            # 'vision_opencv',
         ]
     else:
         build_function = build_and_test_and_package
